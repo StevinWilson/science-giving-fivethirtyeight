@@ -167,7 +167,7 @@ ggplot(data = top_campaigns, aes(x = reorder(cand_name, -n), y = n/1000000))+
   geom_bar(stat = "identity" , fill = "black")+
   theme(axis.text.x = element_text(angle = 90, hjust = 1))+
   ylim(0,20)+
-  labs(title = "Most favored candidates among 'Scientists' & 'Engineers' [2007 - 2016]" , x = "Candidate" , y = "USD (in millions)" , caption = "Amounts adjusted to 2016 inflation" )
+  labs(title = "Favorites among 'Scientists' & 'Engineers' [2007 - 2016]" , x = "Candidate" , y = "USD (in millions)" , caption = "Amounts adjusted to 2016 inflation" )
 
 
 #Campaigns with the highest amount in donations from "Scientists"
