@@ -1,9 +1,11 @@
 #Data from https://github.com/fivethirtyeight/data/tree/master/science-giving
 #This datasets was originally obtained from the Federal Election Commission and contains information of donations during the period of 2007-2016 filtered for the occupations that can be braodly classified under the labels "Science" or "Engineering". For more details about the filtered occupations, visit the above Github repo page.
 #Only considering donations to GOP or Democratic campaigns. Other parties are miniscule in the number of voters and donations, but not in big ideas.
+#install.packages("devtools")
+#devtools::install_github("UrbanInstitute/urbnmapr")
 
 
-library(tidyverse)
+require(tidyverse)
 
 library(urbnmapr)
 
@@ -415,4 +417,33 @@ science_giving %>%
   filter(state %in% c("AA" ,"AE" ,"AP")) %>%
   group_by(cmte_pty)%>%
   summarize(median_amt = median(`2016_dollars`, na.rm = TRUE) , sum_amt = sum(`2016_dollars`, na.rm = TRUE))
+
+#Hillary vs Bernie 
+science_giving$cand_name<- as.factor(science_giving$cand_name)
+Hillary_vs_Bernie <- science_giving %>%
+  filter(!is.na(cand_name)) %>%
+  filter(!is.na(state)) %>%
+  group_by(state, cand_name) %>%
+  summarize(statewide_contribution = sum(`2016_dollars`)) %>%
+  spread(key = cand_name, value = statewide_contribution)%>%
+  select(state, `CLINTON, HILLARY RODHAM`, `SANDERS, BERNARD`)
+head(Hillary_vs_Bernie)
+#considering NA as 0
+Hillary_vs_Bernie[is.na(Hillary_vs_Bernie)] <- 0
+
+Hillary_vs_Bernie <- Hillary_vs_Bernie %>%
+  mutate(Hillary_minus_Bernie = `CLINTON, HILLARY RODHAM` - `SANDERS, BERNARD`)
+colnames(Hillary_vs_Bernie)
+Hillary_vs_Bernie %>%  
+  mutate("state_abbv" = state)%>%
+  filter(!is.na(state_abbv)) %>%
+  left_join(states, by = "state_abbv") %>% 
+  ggplot(mapping = aes(long, lat, group = group, fill = `Hillary_minus_Bernie`)) +
+  geom_polygon(color = "#ffffff", size = .25) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45)+
+  scale_fill_gradient2(limits = c(-1500000,1500000),breaks= c(-1500000,0,1500000),
+                      name = "Excess funding for Hillary (USD)", low = " black", mid = "white", high = "green", midpoint = 0)+
+  labs(title = "Hillary vs Bernie - 'Scientists' & 'Engineers'" , x = "Longitude" , y = "Latitude" , caption = "Amounts adjusted to 2016 inflation" )
+
+Hillary_vs_Bernie[which(Hillary_vs_Bernie$Hillary_minus_Bernie <0),]
 
